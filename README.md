@@ -1,6 +1,8 @@
 imgcache.js
 ===========
 
+*DEV BRANCH:* In this branch, the jQuery/Zepto dependency is now removed (see issue #31)
+
 The purpose of this JS library is to provide a nice interface for locally storing images for offline apps using
 PhoneGap/Cordova or [browsers supporting the new html5 File API](http://caniuse.com/filesystem)
 (e.g. Chrome).
@@ -26,7 +28,6 @@ Using imgcache.js
 
 Requirements
 ------------
-* jQuery (any version from 1.6 should do) or Zepto
 * Phonegap/Cordova *optional* (v >= v1.7)
 * [imagesloaded] (http://desandro.github.com/imagesloaded/) *optional*
 
