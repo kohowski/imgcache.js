@@ -22,7 +22,7 @@ var ImgCache = {
 		useDataURI: false,		/* use src="data:.."? otherwise will use src="filesystem:.." */
 		chromeQuota: 10*1024*1024,	/* allocated cache space : here 10Mb */
 		usePersistentCache: true,	/* false: use temporary cache storage */
-		cacheClearSize : 0,             /* size in Mb that trigger cache clear, 0 to desactivate */
+		cacheClearSize : 0             /* size in Mb that trigger cache clear, 0 to desactivate */
 		/* customLogger */		/* if function defined, will use this one to log events */
 	},
 	version: '0.6.2',
@@ -123,11 +123,11 @@ var ImgCache = {
 		return (local_root ? local_root + '/' : '') + filename;
 	};
 
-	var _setNewImgPath = function($img, new_src, old_src) {
-		$img.attr('src', new_src);
-		// store previous url in case we need to reload it
-		$img.attr(old_src_attr, old_src);
-	};
+//	var _setNewImgPath = function($img, new_src, old_src) {
+//		$img.attr('src', new_src);
+//		// store previous url in case we need to reload it
+//		$img.attr(old_src_attr, old_src);
+//	};
 
 	var _createCacheDir = function(callback) {
 		if (!ImgCache.filesystem)
@@ -155,7 +155,7 @@ var ImgCache = {
 			}
 
 			ImgCache.ready = true;
-			$(document).trigger('ImgCacheReady');
+//			$(document).trigger('ImgCacheReady');
 		};
 		ImgCache.filesystem.root.getDirectory(ImgCache.options.localCacheFolder, {create: true, exclusive: false}, _getDirSuccess, _fail);	
 	};
@@ -372,20 +372,20 @@ var ImgCache = {
 
 	// $img: jQuery object of an <img/> element
 	// Synchronous method
-	ImgCache.useOnlineFile = function($img) {
+//	ImgCache.useOnlineFile = function($img) {
+//
+//		if (!isImgCacheLoaded() || !$img)
+//			return;
+//
+//		var prev_src = $img.attr(old_src_attr);
+//		if (prev_src)
+//			$img.attr('src', prev_src);
+//		$img.removeAttr(old_src_attr);
+//	};
 
-		if (!isImgCacheLoaded() || !$img)
-			return;
+	var _loadCachedFile = function(img_src, success_callback, fail_callback) {
 
-		var prev_src = $img.attr(old_src_attr);
-		if (prev_src)
-			$img.attr('src', prev_src);
-		$img.removeAttr(old_src_attr);
-	};
-
-	var _loadCachedFile = function($element, img_src, set_path_callback, success_callback, fail_callback) {
-
-		if (!ImgCache.filesystem || !ImgCache.dirEntry || !$element)
+		if (!ImgCache.filesystem || !ImgCache.dirEntry)
 			return;
 
 		var filename = URIGetFileName(img_src);
@@ -396,49 +396,34 @@ var ImgCache = {
 				var _win = function(file) {
 					var reader = new FileReader();
 					reader.onloadend = function(e) {
-						// prefix with : 'data:' + mime_type + ';base64;' + .. ?
-						/* var mime_type = '';
-						if (filename && filename.length > 4) {
-							//TODO: of course relying on extension is wrong.. but we trust our data here
-							var ext = filename.substr(filename.length - 4).toLowerCase();
-							if (ext == '.jpg' || ext == 'jpeg') {
-								mime_type = 'image/jpeg';
-							} else if (ext == '.png') {
-								mime_type = 'image/png';
-							} else if (ext == '.gif') {
-								mime_type = 'image/gif';
-							}
-						} */
 						var base64content = e.target.result;
 						if (!base64content) {
 							logging('File in cache ' + filename + ' is empty', 2);
-							if (fail_callback) fail_callback($element);
+							if (fail_callback) fail_callback(img_src);
 							return;
 						}
-						set_path_callback($element, base64content, img_src);
 						logging('File ' + filename + ' loaded from cache', 1);
-						if (success_callback) success_callback($element);
+						if (success_callback) success_callback(new_url);
 					};
 					reader.readAsDataURL(file);
 				};
 				var _fail = function(error) {
 					logging('Failed to read file ' + error.code, 3);
-					if (fail_callback) fail_callback($element);
+					if (fail_callback) fail_callback(img_src);
 				};
 
 				entry.file(_win, _fail);
 			} else {
 				// using src="filesystem:" kind of url
 				var new_url = _getFileEntryURL(entry);
-				set_path_callback($element, new_url, img_src);
 				logging('File ' + filename + ' loaded from cache', 1);
-				if (success_callback) success_callback($element);
+				if (success_callback) success_callback(new_url);
 			}
 		};
 		// if file does not exist in cache, cache it now!
 		var _fail = function(e) {
 			logging('File ' + filename + ' not in cache', 1);
-			if (fail_callback) fail_callback($element);
+			if (fail_callback) fail_callback(img_src);
 		};
 		ImgCache.dirEntry.getFile(filePath, { create: false }, _gotFileEntry, _fail);
 	}
@@ -446,22 +431,22 @@ var ImgCache = {
 
 
 	// $img: jQuery object of an <img/> element
-	ImgCache.useCachedFile = function($img, success_callback, fail_callback) {
+	ImgCache.useCachedFile = function(img_src, success_callback, fail_callback) {
 
 		if (!isImgCacheLoaded())
 			return;
 
-		_loadCachedFile($img, $img.attr('src'), _setNewImgPath, success_callback, fail_callback);
+		_loadCachedFile(img_src, success_callback, fail_callback);
 	}
 
 	// When the source url is not the 'src' attribute of the given img element
-	ImgCache.useCachedFileWithSource = function($img, image_url, success_callback, fail_callback) {
-
-		if (!isImgCacheLoaded())
-			return;
-	
-		_loadCachedFile($img, image_url, _setNewImgPath, success_callback, fail_callback);
-	}
+//	ImgCache.useCachedFileWithSource = function($img, image_url, success_callback, fail_callback) {
+//
+//		if (!isImgCacheLoaded())
+//			return;
+//
+//		_loadCachedFile($img, image_url, _setNewImgPath, success_callback, fail_callback);
+//	}
 
 	// clears the cache
 	ImgCache.clearCache = function(success_callback, error_callback) {
@@ -485,8 +470,8 @@ var ImgCache = {
 			}
 		);
 	};
-
-	ImgCache.removeFile = function(img_src, success_callback, error_callback) {
+	
+    ImgCache.removeFile = function(img_src, success_callback, error_callback) {
 		var filePath = _getCachedFilePath(img_src, ImgCache.dirEntry.fullPath);
 		var _fail = function(error) {
 			logging('Failed to remove file due to ' + error.code, 3);
@@ -503,32 +488,32 @@ var ImgCache = {
 			);
 		}, _fail);
 	};
-	
-	ImgCache.cacheBackground = function($div, success_callback, fail_callback) {
 
-		if (!isImgCacheLoaded())
-			return;
-
-	        var regexp = /\((.+)\)/
-	        var img_src = regexp.exec($div.css('background-image'))[1];
-	        logging('Background image URL: ' + img_src, 1);
-	        ImgCache.cacheFile(img_src, success_callback, fail_callback);
-	}
-
-	ImgCache.useCachedBackground = function($div, success_callback, fail_callback) {
-
-		if (!isImgCacheLoaded())
-			return;
-
-	        var regexp = /\((.+)\)/
-	        var img_src = regexp.exec($div.css('background-image'))[1];
-
-		var _setBackgroundImagePath = function($element, new_src, old_src) {
-			$element.css('background-image', 'url("' + new_src + '")');
-		};
-
-		_loadCachedFile($div, img_src, _setBackgroundImagePath, success_callback, fail_callback);
-	}
+//	ImgCache.cacheBackground = function($div, success_callback, fail_callback) {
+//
+//		if (!isImgCacheLoaded())
+//			return;
+//
+//	        var regexp = /\((.+)\)/
+//	        var img_src = regexp.exec($div.css('background-image'))[1];
+//	        logging('Background image URL: ' + img_src, 1);
+//	        ImgCache.cacheFile(img_src, success_callback, fail_callback);
+//	}
+//
+//	ImgCache.useCachedBackground = function($div, success_callback, fail_callback) {
+//
+//		if (!isImgCacheLoaded())
+//			return;
+//
+//	        var regexp = /\((.+)\)/
+//	        var img_src = regexp.exec($div.css('background-image'))[1];
+//
+//		var _setBackgroundImagePath = function($element, new_src, old_src) {
+//			$element.css('background-image', 'url("' + new_src + '")');
+//		};
+//
+//		_loadCachedFile($div, img_src, _setBackgroundImagePath, success_callback, fail_callback);
+//	}
 
 
 	// returns the URI of the local cache folder (filesystem:)
@@ -541,6 +526,5 @@ var ImgCache = {
 
 		return _getFileEntryURL(ImgCache.dirEntry);
 	};
-})(window.jQuery || window.Zepto);
-
+})(window.jQuery || window.Zepto);
 
